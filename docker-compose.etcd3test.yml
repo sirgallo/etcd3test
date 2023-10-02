@@ -1,0 +1,93 @@
+version: "3"
+x-variables:
+  flag_initial_cluster_token: &flag_initial_cluster_token '--initial-cluster-token=secrettoken'
+  common_etcd3api_settings: &common_etcd3api_settings
+    image: etcd3api-img
+    build:
+      context: .
+      dockerfile: ./etcd3api/Dockerfile
+    ports:
+      - '1234'
+    environment:
+      - ETCDHOSTS=etcd0:2379,etcd1:2379,etcd2:2379
+      - NODE_ENV=docker
+      - NODE_OPTIONS="--max-old-space-size=4096"
+    networks:
+      api_layer:
+    healthcheck:
+      test: curl --fail http://localhost:1234/poll || kill 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+  common_etcd_settings: &common_etcd_settings
+    image: quay.io/coreos/etcd:v3.5.9
+    entrypoint: /usr/local/bin/etcd
+    ports: 
+      - '4001'
+      - '2380'
+      - '2379'
+    networks:
+      api_layer:
+services:
+  etcd3api0:
+    <<: *common_etcd3api_settings
+  etcd3api1:
+    <<: *common_etcd3api_settings
+  etcd3api2:
+    <<: *common_etcd3api_settings
+  etcd0:
+    <<: *common_etcd_settings
+    hostname: etcd0
+    command:
+      - '--name=etcd0'
+      - '--initial-advertise-peer-urls=http://etcd0:2380'
+      - '--listen-peer-urls=http://0.0.0.0:2380'
+      - '--listen-client-urls=http://0.0.0.0:2379'
+      - '--advertise-client-urls=http://etcd0:2379'
+      - '--initial-cluster=etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380'
+      - '--heartbeat-interval=100'
+      - '--election-timeout=1000'
+      - '--initial-cluster-state=new'
+      - *flag_initial_cluster_token
+    volumes:
+      - etcd0:/etcd_data
+  etcd1:
+    <<: *common_etcd_settings
+    hostname: etcd1
+    command:
+      - '--name=etcd1'
+      - '--initial-advertise-peer-urls=http://etcd1:2380'
+      - '--listen-peer-urls=http://0.0.0.0:2380'
+      - '--listen-client-urls=http://0.0.0.0:2379'
+      - '--advertise-client-urls=http://etcd1:2379'
+      - '--initial-cluster=etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380'
+      - '--heartbeat-interval=100'
+      - '--election-timeout=1000'
+      - '--initial-cluster-state=new'
+      - *flag_initial_cluster_token
+    volumes:
+      - etcd1:/etcd_data
+  etcd2:
+    <<: *common_etcd_settings
+    hostname: etcd2
+    command:
+      - '--name=etcd2'
+      - '--initial-advertise-peer-urls=http://etcd2:2380'
+      - '--listen-peer-urls=http://0.0.0.0:2380'
+      - '--listen-client-urls=http://0.0.0.0:2379'
+      - '--advertise-client-urls=http://etcd2:2379'
+      - '--initial-cluster=etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380'
+      - '--heartbeat-interval=100'
+      - '--election-timeout=1000'
+      - '--initial-cluster-state=new'
+      - *flag_initial_cluster_token
+    volumes:
+      - etcd2:/etcd_data
+networks:
+  api_layer:
+    driver: bridge
+volumes:
+  etcd0:
+  etcd1:
+  etcd2:

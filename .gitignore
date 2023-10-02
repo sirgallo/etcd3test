@@ -1,0 +1,14 @@
+node_modules
+dist
+.tscache
+*service.yaml
+.dccache
+
+*-persistentvolumeclaim.yaml
+*-networkpolicy.yaml
+
+certs/*.key
+certs/*.crt 
+certs/*.pem
+
+cli/token/jsonWebTokenLocalStorage*
