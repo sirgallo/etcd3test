@@ -40,28 +40,15 @@ This includes:
 
 1.) `export HOSTNAME` --> read by docker to bind the host to the loadbalancer
 
-2.) `docker-compose -f docker-compose.etcd3test.yml up --build` --> starts the loadbalancer and ledger services
+2.) `docker-compose -f docker-compose.etcd3test.yml up --build` --> starts the loadbalancer, etcd3apis, and etcd cluster
 
-Output from the ledger service is verbose on the command line.
+Output from the etcd3 services is verbose on the command line.
 
 Otherwise, if you have started the services and stopped them with [stopDev.sh](../stopDev.sh), you can restart the services by typing `no` after the prompt.
 
 **RESTART**
 
-1.) `docker-compose -f docker-compose.mongoreplica.yml start` --> restart stopped mongo replica
-
-2.) `docker-compose -f docker-compose.ledger.dev.yml up` --> bring up ledger services
-
-
-`docker-compose files`
-
-[etcd3test](../docker-compose.ledger.dev.yml)
-
-`docker files`
-
-[ledger Dockerfile](../ledger/Dockerfile)
-
-[haproxy Dockerfile](../lb/Dockerfile.ledger.lb)
+Basic stop or down for docker-compose containers.
 
 
 ## Interacting with the Service
@@ -72,8 +59,6 @@ Otherwise, if you have started the services and stopped them with [stopDev.sh](.
 hostname
 ```
 
-2.) check out the [@CLI](../cli/CLI.md) for sending requests to the service
-
 
 ## Stopping the Services
 
@@ -83,23 +68,6 @@ chmod +x ./stopDev.sh
 ./stopDev.sh
 ```
 
-Again, this contains all of the necessary command line instructions to stop or remove the services. You will be prompted with `should this action remove containers? (yes or no):`
-
-if `no` is selected, the services can be restarted and data is persisted for the db
-
-**STOP**
-
-1.) docker-compose -f docker-compose.mongoreplica.yml stop
-
-2.) docker-compose -f docker-compose.ledger.dev.yml stop
-
-otherwise, the containers are removed:
-
-**REMOVE**
-
-1.) docker-compose -f docker-compose.mongoreplica.yml down
-
-2.) docker-compose -f docker-compose.ledger.dev.yml down
 
 ## Removing Docker Containers
 
@@ -110,32 +78,18 @@ chmod +x ./stopandremovealldockercontainers.sh
 ./stopandremovealldockercontainers.sh
 ```
 
-## Architecture
-
-```
-  DB Layer:
-
-      replica1        replica2
-          \             /
-           \           /
-              primary
-                |
-  API Layer:    |  network bridge
-
-  ledger api 1, ledger api 2, ... ledger api N
-                |
-                |
-  Client Layer: |  network bridge
-
-            haproxy lb           
-```
 
 ## Accessing in Dev
 
-the api layer and db layer are segregated off from the world, with the haproxy being the single
+the api layer is segregated off from the world, with the haproxy being the single
 point of entry to access the apis beneath. The haproxy instance will bind to the hostname/ip of the host system
 and utilizes self signed certs to provide https/ssl access to the cluster. Haproxy handles load balancing requests to available systems, and uses a `least connection` approach when distributing requests.
 
 Backend services have a path prefixed with `b_v1`, which just indicates backend version 1.
 
 Self signed certs can be generated in the [@certs](../certs) folder, where directions are given. Since the certs are being generated for the particular hostname running the services, they can be bound directly to the container where haproxy is running.
+
+
+## Sources
+
+[etcd3testdockercompose](../docker-compose.ledger.dev.yml)

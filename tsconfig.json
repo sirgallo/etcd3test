@@ -24,7 +24,6 @@
     "paths": {
       "@etcd3api/*": ["etcd3api/*"],
       "@core/*": ["core/*"],
-      "@cli/*": ["cli/*"],
       "@baseServer/*": ["core/baseServer/*"]
     }
   }
