@@ -7,14 +7,14 @@ import { LogProvider } from '@core/providers/LogProvider';
 
 const NAME = 'Election Provider'
 
-const HOSTS: string[] = ((): string[] => {
-  const listAsString = env.ETCDHOSTS
-  return listAsString.split(',');
-})();
+const DEFAULT_OPTS: IOptions = (() => {
+  const hosts: string[] = ((): string[] => {
+    const listAsString = env.ETCDHOSTS
+    return listAsString.split(',');
+  })();
 
-const DEFAULT_OPTS: IOptions = {
-  hosts: HOSTS
-}
+  return { hosts };
+})();
 
 
 export class ElectionProvider {
