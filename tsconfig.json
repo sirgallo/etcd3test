@@ -22,8 +22,9 @@
     ],
     "baseUrl": "./",
     "paths": {
-      "@etcd3api/*": ["etcd3api/*"],
       "@core/*": ["core/*"],
+      "@etcdProviders/*": ["etcdProviders/*"],
+      "@etcd3api/*": ["etcd3api/*"],
       "@baseServer/*": ["core/baseServer/*"]
     }
   }

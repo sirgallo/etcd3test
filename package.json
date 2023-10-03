@@ -47,8 +47,9 @@
     "ts-jest": "^29.1.0"
   },
   "_moduleAliases": {
-    "@etcd3api": "./dist/etcd3api",
     "@core": "./dist/core",
+    "@etcdProviders": "./dist/etcdProviders",
+    "@etcd3api": "./dist/etcd3api",
     "@baseServer": "./dist/core/baseServer"
   }
 }

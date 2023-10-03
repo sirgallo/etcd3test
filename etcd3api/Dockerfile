@@ -6,6 +6,7 @@ RUN apt-get install -y curl
 WORKDIR /usr/src/etcd3test
 
 COPY core ./core
+COPY etcdProviders ./etcdProviders
 COPY etcd3api ./etcd3api
 
 COPY moduleAlias.mjs \

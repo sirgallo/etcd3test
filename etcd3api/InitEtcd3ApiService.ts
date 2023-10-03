@@ -1,20 +1,25 @@
 import { BaseServer } from '@baseServer/core/BaseServer';
-
-import { ElectionProvider } from '@etcd3api/providers/ElectionProvider';
+import { ElectionProvider } from '@etcdProviders/ElectionProvider';
 
 
 export class InitEtcd3ApiService extends BaseServer {
-  constructor(private basePath: string, name: string, port?: number, version?: string, numOfCpus?: number) { 
+  private electionProv: ElectionProvider;
+
+  constructor(
+    private basePath: string, 
+    name: string, 
+    port?: number, 
+    version?: string, 
+    numOfCpus?: number
+  ) { 
     super(name, port, version, numOfCpus); 
+    this.electionProv = new ElectionProvider('test');
   }
 
   async initService(): Promise<boolean> {
     try {
-      const electionProv = new ElectionProvider();
-      this.zLog.info("etcd3 client initialized");
-
-      electionProv.runCampaign()
-      electionProv.observeLeader()
+      this.zLog.info('leader election module starting...');
+      this.electionProv.start();
 
       return true;
     } catch (err) {
