@@ -14,6 +14,7 @@ describe('WatchProvider', () => {
   let queryProvForPrefix: QueryProvider;
   let watcher: Watcher;
   let listener: jest.Mock<any, any, any>;
+  let events = {};
 
   beforeAll(async () => {
     watchProvider = new WatchProvider(TEST_OPTIONS);
@@ -29,7 +30,9 @@ describe('WatchProvider', () => {
 
     const key = MockData.dummyKeyValList()[0].key;
     watcher = await watchProvider.startWatcher({ key });
-    listener = jest.fn();
+    listener = jest.fn((event, callback) => {
+      events[event] = callback;
+    });
   });
 
   afterEach(async () => {

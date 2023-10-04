@@ -11,19 +11,17 @@ import {
 const NAME = 'Election Provider';
 
 
-/*
-  Election Provider:
-    starts leader election using etcd3
-    
-    Systems connect to the etcd3 cluster, where a single system is elected leader and will perform work. Each system that 
-    connects to the cluster will heartbeat on a fixed interval, which by default will be 100ms but can be tuned for different 
-    network environments. On failures, if a heartbeat is not received by the etcd3 cluster within the election timeout, a campaign 
-    begins and a new system will be elected to take the place as the new leader.
-
-    When a system is elected leader, two events occur:
-      isLeader attribute: the getter can then be used within other providers to determine what action the system should take
-      on: the event emitter will emit a truthy event to the promoted event, which should signal the leader to perform some operation
-*/
+/**
+ * Election Provider
+ *  starts leader election using etcd3
+ *   
+ *  Systems connect to the etcd3 cluster, where a single system is elected leader and will perform work. Each system that 
+ *  connects to the cluster will heartbeat on a fixed interval, which by default will be 100ms but can be tuned for different 
+ *  network environments. On failures, if a heartbeat is not received by the etcd3 cluster within the election timeout, a campaign 
+ *  begins and a new system will be elected to take the place as the new leader.
+ * 
+ * @class
+ */
 export class ElectionProvider extends BaseEtcdProvider {
   private election: Election;
   private hostname = hostname();
@@ -34,14 +32,14 @@ export class ElectionProvider extends BaseEtcdProvider {
     this.election = this.client.election(this.electionName);
   }
 
-  /*
-    set and get isLeader:
-      for leadership status of the current host
-
-      also will emit an event for each of the following:
-        if isLeader == true: emit true to the promoted event
-        if isLeader == false: emit false to the promoted event
-  */
+  /**
+   * set Leader:
+   *  set leadership status of the current host
+   * 
+   *  on leadership changes, emit an event to the promoted event stream
+   * 
+   * @param {string} leader - the hostname of the new leader
+   */
   private setIsLeader(leader?: string) {
     if (leader) {
       if (leader !== this.hostname) {
@@ -58,37 +56,42 @@ export class ElectionProvider extends BaseEtcdProvider {
     }
   }
 
+  /**
+   * get isLeader:
+   * 
+   * @returns {boolean} - current status
+   */
   get isLeader(): boolean {
     return this._isLeader;
   }
 
-  /*
-    on:
-      strictly typed event listener, where the listener callback can be implemented by any method that 
-      utilizes the Election Provider
-
-      promoted == true --> in callback, leader should perform some sort of operation or work
-      promoted == false --> ignore, or perform a request redirection to the leader
-  */
-  on(event: ElectionEvent, listener: ElectionListener) {
+  /**
+   * on:
+   *  strictly typed event listener, where the listener callback can be implemented by any method that utilizes the Election Provider
+   * 
+   * @param {ElectionEvent} event - the event for the event stream, in this case promoted
+   * @param {ElectionListener} listener - callback that on event returns true if leader, false if not
+   * @returns {this}
+   */
+  on(event: ElectionEvent, listener: ElectionListener): this {
     return super.on(event, listener);
   }
 
-  /*
-    start:  
-      start both the campaign and the leader observer methods
-  */
+  /**
+   * start:
+   *  start both the campaign and the leader observer methods
+   */
   async start() {
     this.createCampaign();
     this.createObserver();
   }
 
-  /*
-    create Campaign:
-      puts the current system as eligble for election
-      
-      On successful campaign, leader will perform work while the rest of the systems act as a fallback.
-  */
+  /**
+   * create Campaign:
+   *  puts the current system as eligble for election
+   *  
+   * On successful campaign, leader will perform work while the rest of the systems act as a fallback.
+   */
   private async createCampaign() {
     const campaign = this.election.campaign(hostname());
     this.zLog.debug(`campaign started for host ${hostname()}`);
@@ -101,12 +104,12 @@ export class ElectionProvider extends BaseEtcdProvider {
     });
   }
 
-  /*
-    create Observer:
-      observer for the campaign.
-
-      On leader changes, an event will be emitted. If leader, ignore, if not set the system to follower.
-  */
+  /**
+   * create Observer:
+   *  observer for the campaign
+   * 
+   *  On leader changes, an event will be emitted. If leader, ignore, if not set the system to follower.
+   */
   private async createObserver() {
     const observer = await this.election.observe();
     this.zLog.debug('leader observer started');

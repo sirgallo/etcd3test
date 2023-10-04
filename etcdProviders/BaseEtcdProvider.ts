@@ -5,10 +5,12 @@ import { LogProvider } from '@core/providers/LogProvider';
 import { ClientProvider} from '@etcdProviders/ClientProvider';
 
 
-/*
-  Base Etcd Provider:
-    initialze the etcd client and the log provider for each etcd provider
-*/
+/**
+ * Base Etcd Provider
+ *  initialze the etcd client and the log provider for each etcd provider
+ * 
+ * @class
+ */
 export class BaseEtcdProvider extends EventEmitter {
   protected client: Etcd3;
   protected zLog: LogProvider;

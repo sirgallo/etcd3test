@@ -1,12 +1,7 @@
-/*
-  Get All Response
-    when issuing a getAll, returns
-    {
-      key1: value,
-      key2: value,
-      ...
-    }
-*/
+/**
+ * @typedef {Object} GetAllResponse
+ * @property {string} key - the key value pairs
+ */
 export type GetAllResponse = {
   [key: string]: string;
 };

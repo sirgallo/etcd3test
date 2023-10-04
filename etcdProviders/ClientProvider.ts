@@ -7,11 +7,12 @@ import { DEFAULT_OPTS } from '@etcdProviders/types/Common';
 const NAME = 'Client Provider';
 
 
-/*
-  Client Provider:
-    instantiate a single client for each service, which reduces the number of connections 
-    to the etcd cluster
-*/
+/**
+ * Client Provider:
+ *  instantiate a single client for each service, which reduces the number of connections to the etcd cluster
+ *  
+ * @class
+ */
 export class ClientProvider {
   private static client: Etcd3;
   private static zLog = new LogProvider(NAME);
