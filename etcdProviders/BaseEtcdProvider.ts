@@ -12,7 +12,7 @@ import { ClientProvider} from '@etcdProviders/ClientProvider';
  * @class
  */
 export class BaseEtcdProvider extends EventEmitter {
-  protected client: Etcd3;
+  client: Etcd3;
   protected zLog: LogProvider;
 
   constructor(protected name: string, clientOpts?: IOptions) {

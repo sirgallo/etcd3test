@@ -1,4 +1,4 @@
-import { IOptions } from 'etcd3';
+import { IOptions, IDeleteRangeResponse } from 'etcd3';
 
 import { BaseEtcdProvider } from '@etcdProviders/BaseEtcdProvider';
 import { GetAllResponse } from '@etcdProviders/types/Query';
@@ -75,7 +75,7 @@ export class QueryProvider extends BaseEtcdProvider {
    */
   async delete(key: string): Promise<boolean> {
     const prefixedKey = this.generatePrefixedKey(key);
-    await this.client.delete().key(prefixedKey);
+    const resp = await this.client.delete().key(prefixedKey);
     
     return true;
   }

@@ -1,26 +1,52 @@
-import { Watcher } from 'etcd3';
+import { Watcher, IKeyValue, IWatchResponse } from 'etcd3';
 
 import { WatchProvider } from '@etcdProviders/WatchProvider';
 import { QueryProvider } from '@etcdProviders/QueryProvider';
 import { TEST_OPTIONS, TEST_PREFIX } from './utils/common';
 import { MockData } from './utils/mockData';
+import { onceEvent } from 'etcd3/lib/util';
+import { WatchEvent } from '@etcdProviders/types/Watch';
 
-
-const delay = (timeout: number) => new Promise(res => setTimeout(res, timeout))
 
 describe('WatchProvider', () => {
   let watchProvider: WatchProvider;
   let queryProvider: QueryProvider;
   let queryProvForPrefix: QueryProvider;
+  let key: string;
   let watcher: Watcher;
-  let listener: jest.Mock<any, any, any>;
-  let events = {};
+
+  const expectWatching = async (key: string, val: string, event: WatchEvent, qProv: QueryProvider) => {
+    const qProvPromise = (() => {
+      if (event === 'put' || event === 'data') return qProv.put(key, val);
+      return qProv.delete(key);
+    })();
+
+    return Promise.all([
+      qProvPromise,
+      onceEvent(watchProvider, event).then((res: IWatchResponse | IKeyValue) => {
+        switch (event) {
+          case 'data': 
+            const watchResp = res as IWatchResponse;
+            const incomingKey = watchResp.events[0].kv.key.toString();
+            const incomingValue = watchResp.events[0].kv.value.toString();
+            console.log('incoming key:', incomingKey, 'incoming value:', incomingValue);
+
+            expect(incomingKey).toBe(key);
+            expect(incomingValue).toBe(val);
+          default:
+            const kvResp = res as IKeyValue;
+            expect(kvResp.key.toString()).toBe(key);
+            expect(kvResp.value.toString()).toBe(val);
+        }
+      })
+    ]);
+  }
 
   beforeAll(async () => {
     watchProvider = new WatchProvider(TEST_OPTIONS);
     queryProvider = new QueryProvider({ clientOpts: TEST_OPTIONS });
     queryProvForPrefix = new QueryProvider({ clientOpts: TEST_OPTIONS, prefix: TEST_PREFIX });
-  });
+  })
 
   beforeEach(async () => {
     for(const { key, value } of MockData.dummyKeyValList()) {
@@ -28,11 +54,8 @@ describe('WatchProvider', () => {
       await queryProvForPrefix.put(key, value);
     }
 
-    const key = MockData.dummyKeyValList()[0].key;
+    key = MockData.dummyKeyValList()[0].key;
     watcher = await watchProvider.startWatcher({ key });
-    listener = jest.fn((event, callback) => {
-      events[event] = callback;
-    });
   });
 
   afterEach(async () => {
@@ -40,74 +63,24 @@ describe('WatchProvider', () => {
       await queryProvider.delete(key);
       await queryProvForPrefix.delete(key);
     }
-    
-    watcher.cancel()
+
+    await watcher.cancel();
     watchProvider.removeAllListeners();
-    listener.mockReset();
   });
 
   it('create instance of watch provider', () => {
     expect(watchProvider).toBeInstanceOf(WatchProvider);
   });
 
-  it('start watcher', async () => {
-    const key = MockData.dummyKeyValList()[0].key;
-    await watchProvider.startWatcher({ key });
+  it('test watch key update', async () => {
+    await expectWatching(key, 'update1', 'put', queryProvider);
   });
 
-  it('track key update', async () => {
-    const key = MockData.dummyKeyValList()[0].key;
-    const expected = { key, value: 'test value' }
-    watchProvider.on('put', listener);
-
-    await delay(2000);
-    await queryProvider.put(key, 'test value');
-
-    console.log('listener mock calls,', listener.mock.calls)
-
-    expect(expected).toMatchObject({ 
-      key: listener.mock.calls[0][0].key.toString(), 
-      value: listener.mock.calls[0][0].value.toString() 
-    });
-
-    expect(listener).toHaveBeenCalledTimes(1);
+  it('test watch key data changes', async () => {
+    await expectWatching(key, 'update2', 'data', queryProvider);
   });
 
-  it('track key data changes', async () => {
-    const key = MockData.dummyKeyValList()[0].key;
-    const expected = { key, value: 'test value again' }
-
-    watchProvider.on('data', listener);
-
-    await delay(2000);
-    await queryProvider.put(key, 'test value again');
-
-    console.log('listener mock calls,', listener.mock.calls)
-
-    expect(expected).toMatchObject({ 
-      key: listener.mock.calls[0][0].events[0].kv.key.toString(), 
-      value: listener.mock.calls[0][0].events[0].kv.value.toString(), 
-    });
-
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
-
-  it('track key deletion', async () => {
-    const key = MockData.dummyKeyValList()[0].key;
-    const expected = { key, value: '' }
-
-    watchProvider.on('delete', listener);
-
-    await delay(2000);
-    await queryProvider.delete(key);
-
-    console.log('listener mock calls,', listener.mock.calls)
-
-    expect(expected).toMatchObject({ 
-      key: listener.mock.calls[0][0].key.toString(), 
-      value: listener.mock.calls[0][0].value.toString() 
-    });
-
-    expect(listener).toHaveBeenCalledTimes(1);
+  it('test watch key deletion', async () => {
+    await expectWatching(key, '', 'delete', queryProvider);
   });
 });
