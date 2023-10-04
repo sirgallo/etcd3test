@@ -16,7 +16,7 @@ const NAME = 'Watch Provider';
   Watch Provider:
     watchers provide a way to subscribe to either a key or a prefix for a range of keys
 
-    on changes, a watcher 
+    on changes, a watcher will emit events associated with the action taken on the key
 */
 export class WatchProvider extends BaseEtcdProvider {
   constructor(private clientOpts?: IOptions) {
