@@ -20,7 +20,6 @@ export class QueryProvider extends BaseEtcdProvider {
 
   constructor(private opts?: { clientOpts?: IOptions, prefix?: string }) {
     super(NAME, opts?.clientOpts);
-    this.zLog.debug(`client opts: ${opts?.clientOpts}`);
     this.prefix = opts?.prefix;
   }
 
