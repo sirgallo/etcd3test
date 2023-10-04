@@ -20,6 +20,7 @@ export class QueryProvider extends BaseEtcdProvider {
 
   constructor(private opts?: { clientOpts?: IOptions, prefix?: string }) {
     super(NAME, opts?.clientOpts);
+    this.zLog.debug(`client opts: ${opts?.clientOpts}`);
     this.prefix = opts?.prefix;
   }
 
@@ -52,6 +53,8 @@ export class QueryProvider extends BaseEtcdProvider {
     const prefix = overridePrefix ? overridePrefix : this.prefix
     if (! prefix) return null;
 
+    this.zLog.debug(`prefix ${prefix}`);
+
     return this.client.getAll().prefix(prefix).strings()
   }
 
@@ -60,7 +63,9 @@ export class QueryProvider extends BaseEtcdProvider {
       delete a key from the etcd key-value store
   */
   async delete(key: string): Promise<boolean> {
-    await this.client.delete().key(key);
+    const prefixedKey = this.generatePrefixedKey(key);
+    await this.client.delete().key(prefixedKey);
+    
     return true;
   }
 

@@ -10,8 +10,8 @@ import { IOptions } from 'etcd3';
 */
 export const DEFAULT_OPTS: IOptions = (() => {
   const hosts: string[] = ((): string[] => {
-    const listAsString = env.ETCDHOSTS
-    return listAsString.split(',');
+    const listAsString = env.ETCDHOSTS;
+    return listAsString?.split(',') ?? null;
   })();
 
   return { hosts };

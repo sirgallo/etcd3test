@@ -1,4 +1,4 @@
-import { Lease, IOptions } from 'etcd3';
+import { Lease, IOptions, ILeaseKeepAliveResponse } from 'etcd3';
 
 import { BaseEtcdProvider } from '@etcdProviders/BaseEtcdProvider';
 import { CreateLeaseOptions } from '@etcdProviders/types/Lease';
@@ -19,22 +19,21 @@ export class LeaseProvider extends BaseEtcdProvider {
 
   /*
     associate Assigned Lease:
-      associates a new lease with a specific key
+      associates a new lease with a specific existing key
   */
-  async createAssignedLease(key: string, opts: CreateLeaseOptions): Promise<boolean> {
+  async createAssignedLease(existingKey: string, opts: CreateLeaseOptions): Promise<Lease> {
     const lease = this.createLease(opts);
-    await lease.put(key).exec();
+    await lease.put(existingKey).exec()
 
-    return true;
+    return lease;
   }
 
   /*
     renew Lease Once:
       renews a lease one time
   */
-  async renewLeaseOnce(lease: Lease): Promise<boolean> {
-    await lease.keepaliveOnce();
-    return true
+  async renewLeaseOnce(lease: Lease): Promise<ILeaseKeepAliveResponse> {
+    return lease.keepaliveOnce();
   }
 
   /*

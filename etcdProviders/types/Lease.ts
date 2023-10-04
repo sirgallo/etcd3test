@@ -10,5 +10,5 @@ import { ILeaseOptions } from 'etcd3';
 */
 export interface CreateLeaseOptions {
   ttl: number;
-  opts: ILeaseOptions
+  opts?: ILeaseOptions
 }

@@ -5,8 +5,7 @@
   "scripts": {
     "build:all": "grunt --gruntfile gruntfile.cjs",
     "start:etcd3api": "node --no-warnings --experimental-modules --es-module-specifier-resolution=node --loader ./moduleAlias.mjs ./dist/etcd3api/StartEtcd3ApiService.js --color",
-    "cli": "node --no-warnings --experimental-modules --es-module-specifier-resolution=node --loader ./moduleAlias.mjs ./dist/cli/CLI.js --color",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles"
   },
   "author": "Sir Gallo",
   "license": "ISC",

@@ -45,7 +45,7 @@ export class WatchProvider extends BaseEtcdProvider {
       event == delete --> emit key-value object for deleted object in etcd
   */
   private emitMutatedKeyEvent(event: WatchEvent, data: IWatchResponse | IKeyValue) {
-    return super.emit(event, data);
+    super.emit(event, data);
   }
 
   /*
@@ -71,7 +71,9 @@ export class WatchProvider extends BaseEtcdProvider {
 
     watcher.on('data', data => this.emitMutatedKeyEvent(ALLOWED_EVENTS.data, data as IWatchResponse));
     watcher.on('delete', res => this.emitMutatedKeyEvent(ALLOWED_EVENTS.delete, res as IKeyValue));
-    watcher.on('put', res => this.emitMutatedKeyEvent(ALLOWED_EVENTS.put, res as IKeyValue));
+    watcher.on('put', res => {
+      this.emitMutatedKeyEvent(ALLOWED_EVENTS.put, res as IKeyValue)
+    });
 
     return watcher;
   }
