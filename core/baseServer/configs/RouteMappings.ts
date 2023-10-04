@@ -11,8 +11,6 @@ import { BaseRoute } from '@core/baseServer/core/models/RouteMappings';
 
   Base project will always have a poll route for health checks
 */
-
-
 export const routeMappings: Record<string, BaseRoute>= {
   poll: {
     key: 'poll',

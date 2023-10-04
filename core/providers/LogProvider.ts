@@ -9,8 +9,6 @@ import {
   
   Provide base name to constructor so that the log has a predefined location
 */
-
-
 export class LogProvider {
   private log = console.log;
   private table = console.table;

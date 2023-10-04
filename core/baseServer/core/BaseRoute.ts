@@ -3,16 +3,15 @@ import {
 } from 'express';
 
 
-/*
-  All routes need to extend this class
-*/
-
-
 export interface RouteOpts {
   method: string;
   customMsg: any;
 }
 
+
+/*
+  All routes need to extend this class
+*/
 export abstract class BaseRoute {
   protected name: string;
   protected router: Router;

@@ -19,6 +19,10 @@ import { routeMappings } from '@core/baseServer/configs/RouteMappings';
 import { extractErrorMessage } from '@core/utils/Utils';
 
 
+config({ path: '.env' });
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+
 /*
 Base Server
 
@@ -30,11 +34,6 @@ Base Server
       --> start service
       --> listen on default port
 */
-
-
-config({ path: '.env' });
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-
 export abstract class BaseServer {
   name: string;
 
@@ -62,11 +61,18 @@ export abstract class BaseServer {
   }
 
   async startServer() {
-    await this.initService();
-    this.run();
+    try {
+      await this.initService();
+      this.run();
+      this.startEventListeners();
+    } catch(err) {
+      this.zLog.error(`error message: ${err.message}`);
+      throw err;
+    }
   }
 
   abstract initService(): Promise<boolean>;
+  abstract startEventListeners(): Promise<void>;
 
   private async run() {
     try { 

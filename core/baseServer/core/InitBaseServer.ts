@@ -9,10 +9,12 @@ import { BaseServer } from '@core/baseServer/core/BaseServer';
 
   Up to you
 */
-
-
 export class InitBaseServer extends BaseServer {
   async initService(): Promise<boolean> {
     return true;
+  }
+
+  async startEventListeners(): Promise<void> {
+    return null;
   }
 }

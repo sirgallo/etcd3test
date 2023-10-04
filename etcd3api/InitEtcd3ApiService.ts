@@ -1,10 +1,12 @@
 import { BaseServer } from '@baseServer/core/BaseServer';
 import { ElectionProvider } from '@etcdProviders/ElectionProvider';
+import { TestWorkProvider } from '@etcd3api/providers/TestProvider';
 
 
 export class InitEtcd3ApiService extends BaseServer {
   private electionProv: ElectionProvider;
-
+  private testProv: TestWorkProvider;
+  
   constructor(
     private basePath: string, 
     name: string, 
@@ -14,17 +16,19 @@ export class InitEtcd3ApiService extends BaseServer {
   ) { 
     super(name, port, version, numOfCpus); 
     this.electionProv = new ElectionProvider('test');
+    this.testProv = new TestWorkProvider();
   }
 
   async initService(): Promise<boolean> {
-    try {
-      this.zLog.info('leader election module starting...');
-      this.electionProv.start();
+    this.zLog.info('leader election module starting...');
+    this.electionProv.start();
 
-      return true;
-    } catch (err) {
-      this.zLog.error(err);
-      throw err;
-    }
+    return true;
+  }
+
+  async startEventListeners(): Promise<void> {
+    this.electionProv.on('promoted', async res => {
+      if (res) await this.testProv.doWork();
+    });
   }
 }

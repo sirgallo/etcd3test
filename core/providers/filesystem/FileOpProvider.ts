@@ -1,9 +1,8 @@
 import { promisify } from 'util';
-import { 
-  writeFile, existsSync, readFile, mkdir, appendFile, WriteFileOptions
-} from 'fs';
+import { writeFile, existsSync, readFile, mkdir, appendFile, WriteFileOptions } from 'fs';
 
 import { LogProvider } from '@core/providers/LogProvider';
+
 
 export const asyncWriteFile = promisify(writeFile);
 export const asyncReadFile = promisify(readFile);
@@ -14,7 +13,6 @@ export const asyncAppendFile = promisify(appendFile);
 /*
   File Operation Helper Class
 */
-
 export class FileOpProvider {
   private zLog = new LogProvider('File Op Provider');
   constructor() {}
