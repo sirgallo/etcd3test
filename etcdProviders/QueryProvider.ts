@@ -53,8 +53,6 @@ export class QueryProvider extends BaseEtcdProvider {
     const prefix = overridePrefix ? overridePrefix : this.prefix
     if (! prefix) return null;
 
-    this.zLog.debug(`prefix ${prefix}`);
-
     return this.client.getAll().prefix(prefix).strings()
   }
 

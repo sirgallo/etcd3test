@@ -1,4 +1,4 @@
-import { IKeyValue, IWatchResponse } from 'etcd3';
+import { Watcher } from 'etcd3';
 
 import { WatchProvider } from '@etcdProviders/WatchProvider';
 import { QueryProvider } from '@etcdProviders/QueryProvider';
@@ -6,13 +6,14 @@ import { TEST_OPTIONS, TEST_PREFIX } from './utils/common';
 import { MockData } from './utils/mockData';
 
 
-let delay = (timeout: number) => new Promise(res => setTimeout(res, timeout))
-
+const delay = (timeout: number) => new Promise(res => setTimeout(res, timeout))
 
 describe('WatchProvider', () => {
   let watchProvider: WatchProvider;
   let queryProvider: QueryProvider;
   let queryProvForPrefix: QueryProvider;
+  let watcher: Watcher;
+  let listener: jest.Mock<any, any, any>;
 
   beforeAll(async () => {
     watchProvider = new WatchProvider(TEST_OPTIONS);
@@ -25,6 +26,10 @@ describe('WatchProvider', () => {
       await queryProvider.put(key, value);
       await queryProvForPrefix.put(key, value);
     }
+
+    const key = MockData.dummyKeyValList()[0].key;
+    watcher = await watchProvider.startWatcher({ key });
+    listener = jest.fn();
   });
 
   afterEach(async () => {
@@ -32,10 +37,10 @@ describe('WatchProvider', () => {
       await queryProvider.delete(key);
       await queryProvForPrefix.delete(key);
     }
-  });
-
-  afterAll(async () => {
+    
+    watcher.cancel()
     watchProvider.removeAllListeners();
+    listener.mockReset();
   });
 
   it('create instance of watch provider', () => {
@@ -50,14 +55,12 @@ describe('WatchProvider', () => {
   it('track key update', async () => {
     const key = MockData.dummyKeyValList()[0].key;
     const expected = { key, value: 'test value' }
-    const listener = jest.fn();
+    watchProvider.on('put', listener);
 
-    const watcher = await watchProvider.startWatcher({ key });
-    watcher.on('put', listener);
-
+    await delay(2000);
     await queryProvider.put(key, 'test value');
 
-    await delay(1000)
+    console.log('listener mock calls,', listener.mock.calls)
 
     expect(expected).toMatchObject({ 
       key: listener.mock.calls[0][0].key.toString(), 
@@ -70,13 +73,13 @@ describe('WatchProvider', () => {
   it('track key data changes', async () => {
     const key = MockData.dummyKeyValList()[0].key;
     const expected = { key, value: 'test value again' }
-    const listener = jest.fn();
 
-    const watcher = await watchProvider.startWatcher({ key });
-    watcher.on('data', listener);
+    watchProvider.on('data', listener);
 
+    await delay(2000);
     await queryProvider.put(key, 'test value again');
-    await delay(1000)
+
+    console.log('listener mock calls,', listener.mock.calls)
 
     expect(expected).toMatchObject({ 
       key: listener.mock.calls[0][0].events[0].kv.key.toString(), 
@@ -89,13 +92,13 @@ describe('WatchProvider', () => {
   it('track key deletion', async () => {
     const key = MockData.dummyKeyValList()[0].key;
     const expected = { key, value: '' }
-    const listener = jest.fn();
 
-    const watcher = await watchProvider.startWatcher({ key });
-    watcher.on('delete', listener);
+    watchProvider.on('delete', listener);
 
+    await delay(2000);
     await queryProvider.delete(key);
-    await delay(1000)
+
+    console.log('listener mock calls,', listener.mock.calls)
 
     expect(expected).toMatchObject({ 
       key: listener.mock.calls[0][0].key.toString(), 
